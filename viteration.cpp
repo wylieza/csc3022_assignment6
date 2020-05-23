@@ -74,17 +74,29 @@ action PI(state s){
 int main(int agrc, char *argv[]){
     std::cout << "Value Iteration\n";
 
-    double delta = 0;
-    double epsilon = 1e-10;
+    double delta;
+    double epsilon = 1e-2;
     double v;
+    int iterations = 0;
 
     do {
+        iterations++;
+        std::cout << "Iteration: " << iterations << std::endl;
+        delta = 0;
         for (int si = s1; si < s6+1; ++si){
             v = V[si];
             V[si] = new_V((state) si);
-
+            delta = std::max(delta, std::abs(v - V[si]));
         }
-
-
+        std::cout << "Delta: " << delta << " Epsilon: " << epsilon << "\n";
     } while (delta > epsilon);
+
+    std::cout << "Policy learned:\n";
+    state s = s1;
+    while (s != s3){
+        std::cout << "s" << s+1 << " : a" << PI(s) << " -> ";
+        s = next_state(s, PI(s));
+    }
+    std::cout << "s" << s+1 << " : done\n";
+    std::cout << "Reward: " << V[s1] << std::endl;
 }
