@@ -1,6 +1,7 @@
 #include <vector>
 #include <iostream>
 #include <algorithm>
+#include <fstream>
 
 //Hyperparams
 double discount_factor = 0.8;
@@ -71,6 +72,21 @@ action PI(state s){
     return a;
 }
 
+void save_V(const std::string &fname){
+    std::ofstream outfile(fname);
+    if (!outfile){
+        std::cout << "Error occured while attempting to write to file!\n";
+        exit(0);
+    }
+
+    for(int state = s1; state <= s6; ++state){
+        outfile << "State " << state+1 << " -> V*(" << state+1 << ") = " << V[state] << std::endl;
+    }
+
+    outfile.close();
+    
+}
+
 int main(int agrc, char *argv[]){
     std::cout << "Value Iteration\n";
 
@@ -81,14 +97,14 @@ int main(int agrc, char *argv[]){
 
     do {
         iterations++;
-        std::cout << "Iteration: " << iterations << std::endl;
+        //std::cout << "Iteration: " << iterations << std::endl;
         delta = 0;
         for (int si = s1; si < s6+1; ++si){
             v = V[si];
             V[si] = new_V((state) si);
             delta = std::max(delta, std::abs(v - V[si]));
         }
-        std::cout << "Delta: " << delta << " Epsilon: " << epsilon << "\n";
+        //std::cout << "Delta: " << delta << " Epsilon: " << epsilon << "\n";
     } while (delta > epsilon);
 
     std::cout << "Policy learned:\n";
@@ -98,5 +114,8 @@ int main(int agrc, char *argv[]){
         s = next_state(s, PI(s));
     }
     std::cout << "s" << s+1 << " : done\n";
-    std::cout << "Reward: " << V[s1] << std::endl;
+    std::cout << "Highest Attainable Reward: " << V[s1] << std::endl;
+
+    std::cout << "Number of iterations taken to converge: " << iterations << std::endl; //Question 1 answer
+    save_V("optimal_values.txt"); //Question 1 text file
 }
