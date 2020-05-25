@@ -21,6 +21,26 @@ int reward(state s, action a){
     return 0;
 }
 
+std::string action_name(action a){
+    switch (a){
+        case 0:
+            return "left";
+            break;
+        case 1:
+            return "right";
+            break;
+        case 2:
+            return "up";
+            break;
+        case 3:
+            return "down";
+            break;
+        default:
+            return "";
+        
+    }
+}
+
 state next_state(state s, action a){
     switch (s){
         case s1:
@@ -65,9 +85,10 @@ action PI(state s){
     double highest_reward = reward(s, a) + discount_factor*V[next_state(s, a)];
     double calculated_reward;
     for (auto act = ++actions[s].begin(); act < actions[s].end(); ++act){
-        if(highest_reward < (calculated_reward = reward(s, *act) + discount_factor*V[next_state(s, *act)]))
+        if(highest_reward < (calculated_reward = reward(s, *act) + discount_factor*V[next_state(s, *act)])){
             highest_reward = calculated_reward;
             a = *act;
+        }
     }
     return a;
 }
@@ -106,16 +127,26 @@ int main(int agrc, char *argv[]){
         }
         //std::cout << "Delta: " << delta << " Epsilon: " << epsilon << "\n";
     } while (delta > epsilon);
+    
+    std::cout << "Highest Attainable Reward: " << V[s1] << std::endl;
 
-    std::cout << "Policy learned:\n";
+    std::cout << "\nQ1) Number of iterations taken to converge: " << iterations << std::endl; //Question 1 answer
+    std::cout << "\nQ1) Writing optimal values V*(s) to text file 'optimal_values.txt'\n";
+    save_V("optimal_values.txt"); //Question 1 text file
+
+    std::cout << "\nQ2) Starting in state s1 the optimal policy is:\n    ";
     state s = s1;
     while (s != s3){
-        std::cout << "s" << s+1 << " : a" << PI(s) << " -> ";
+        std::cout << "s" << s+1 << " : " << action_name(PI(s)) << " -> ";
         s = next_state(s, PI(s));
     }
     std::cout << "s" << s+1 << " : done\n";
-    std::cout << "Highest Attainable Reward: " << V[s1] << std::endl;
 
-    std::cout << "Number of iterations taken to converge: " << iterations << std::endl; //Question 1 answer
-    save_V("optimal_values.txt"); //Question 1 text file
+    std::cout << "\nQ3) Yes, it is possible to adjust the reward function such that the values V*(s)\n"
+                    "are different while PI* remains unchanged. For this simple case, this is achieved\n"
+                    "by ensuring the reward for s2:right (rs2r) and the reward s6:up (rs6u) are set so the\n"
+                    "following equation holds: 0.8*(rs2r) < (0.8^3)*(rs6u)\n\n"
+                    "For example: if rs2r is left at 50, then any value greater than 78.125 will have the same\n"
+                    "policy, but result in a unique reward function V*(s) for the states.\n\n";
+
 }
