@@ -9,15 +9,19 @@ double discount_factor = 0.8;
 enum state {s1, s2, s3, s4, s5, s6};
 enum action {left, right, up, down};
 
+//Reward values
+int rs2r = 50;
+int rs6u = 100;
+
 const std::vector<std::vector<action>> actions = {{right, down},{right, down, left},{},{up, right},{left, up, right},{left, up}};
 
 std::vector<double> V(6, 0); //Create array V all values init to zero
 
 int reward(state s, action a){
     if(s == s2 && a == right)
-        return 50;
+        return rs2r;
     if(s == s6 && a == up)
-        return 100;
+        return rs6u;
     return 0;
 }
 
@@ -100,16 +104,20 @@ void save_V(const std::string &fname){
         exit(0);
     }
 
-    for(int state = s1; state <= s6; ++state){
-        outfile << "State " << state+1 << " -> V*(" << state+1 << ") = " << V[state] << std::endl;
-    }
+    
 
     outfile.close();
     
 }
 
-int main(int agrc, char *argv[]){
-    std::cout << "Value Iteration\n";
+void reset(){
+    for (auto ent : V){
+        ent = 0;
+    }
+}
+
+int run_vit(){
+    reset();
 
     double delta;
     double epsilon = 1e-2;
@@ -127,11 +135,20 @@ int main(int agrc, char *argv[]){
         }
         //std::cout << "Delta: " << delta << " Epsilon: " << epsilon << "\n";
     } while (delta > epsilon);
+}
+
+int main(int agrc, char *argv[]){
+    std::cout << "Value Iteration\n";
+
+    int iterations = run_vit();
     
     std::cout << "Highest Attainable Reward: " << V[s1] << std::endl;
 
     std::cout << "\nQ1) Number of iterations taken to converge: " << iterations << std::endl; //Question 1 answer
-    std::cout << "\nQ1) Writing optimal values V*(s) to text file 'optimal_values.txt'\n";
+    std::cout << "\nQ1) Optimal values V*(s)\n";
+    for(int state = s1; state <= s6; ++state){
+        std::cout << "State " << state+1 << " -> V*(" << state+1 << ") = " << V[state] << std::endl;
+    }
     save_V("optimal_values.txt"); //Question 1 text file
 
     std::cout << "\nQ2) Starting in state s1 the optimal policy is:\n    ";
@@ -146,7 +163,23 @@ int main(int agrc, char *argv[]){
                     "are different while PI* remains unchanged. For this simple case, this is achieved\n"
                     "by ensuring the reward for s2:right (rs2r) and the reward s6:up (rs6u) are set so the\n"
                     "following equation holds: 0.8*(rs2r) < (0.8^3)*(rs6u)\n\n"
-                    "For example: if rs2r is left at 50, then any value greater than 78.125 will have the same\n"
+                    "For example: if rs2r remains 50, then any value for rs6u greater than 78.125 will have the same\n"
                     "policy, but result in a unique reward function V*(s) for the states.\n\n";
+
+    //Change reward function and rerun
+    rs6u = 79;
+    run_vit();
+
+    std::cout << "Setting rs6u to 79 results in policy (starting s1):\n    ";
+    s = s1;
+    while (s != s3){
+        std::cout << "s" << s+1 << " : " << action_name(PI(s)) << " -> ";
+        s = next_state(s, PI(s));
+    }
+    std::cout << "s" << s+1 << " : done\n"
+    "\nThe reward function V* however has changed:\n";
+    for(int state = s1; state <= s6; ++state){
+        std::cout << "State " << state+1 << " -> V*(" << state+1 << ") = " << V[state] << std::endl;
+    }
 
 }
