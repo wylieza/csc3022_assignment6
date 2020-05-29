@@ -3,6 +3,8 @@
 
 --- Instructions for use ---
 This application is design purely to operate an agent in a predefined environment.
+The application produces an output text file to answer the questions, the
+answers are also printed to the console during each run.
 
 The application is executed by typeing "make run"
 
