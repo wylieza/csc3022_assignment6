@@ -2,6 +2,7 @@
 #include <iostream>
 #include <algorithm>
 #include <fstream>
+#include <sstream>
 
 //Hyperparams
 double discount_factor = 0.8;
@@ -97,17 +98,16 @@ action PI(state s){
     return a;
 }
 
-void save_V(const std::string &fname){
-    std::ofstream outfile(fname);
+void save_results(const std::stringstream &ss){
+    std::ofstream outfile("results.txt");
     if (!outfile){
         std::cout << "Error occured while attempting to write to file!\n";
         exit(0);
     }
 
-    
+    outfile << ss.str();
 
-    outfile.close();
-    
+    outfile.close();    
 }
 
 void reset(){
@@ -135,31 +135,34 @@ int run_vit(){
         }
         //std::cout << "Delta: " << delta << " Epsilon: " << epsilon << "\n";
     } while (delta > epsilon);
+
+    return iterations;
 }
 
 int main(int agrc, char *argv[]){
-    std::cout << "Value Iteration\n";
+    std::stringstream output;
+
+    output << "Value Iteration\n";
 
     int iterations = run_vit();
     
-    std::cout << "Highest Attainable Reward: " << V[s1] << std::endl;
+    output << "Highest Attainable Reward: " << V[s1] << std::endl;
 
-    std::cout << "\nQ1) Number of iterations taken to converge: " << iterations << std::endl; //Question 1 answer
-    std::cout << "\nQ1) Optimal values V*(s)\n";
+    output << "\nQ1) Number of iterations taken to converge: " << iterations << std::endl; //Question 1 answer
+    output << "\nQ1) Optimal values V*(s)\n";
     for(int state = s1; state <= s6; ++state){
-        std::cout << "State " << state+1 << " -> V*(" << state+1 << ") = " << V[state] << std::endl;
+        output << "State " << state+1 << " -> V*(" << state+1 << ") = " << V[state] << std::endl;
     }
-    save_V("optimal_values.txt"); //Question 1 text file
 
-    std::cout << "\nQ2) Starting in state s1 the optimal policy is:\n    ";
+    output << "\nQ2) Starting in state s1 the optimal policy is:\n    ";
     state s = s1;
     while (s != s3){
-        std::cout << "s" << s+1 << " : " << action_name(PI(s)) << " -> ";
+        output << "s" << s+1 << " : " << action_name(PI(s)) << " -> ";
         s = next_state(s, PI(s));
     }
-    std::cout << "s" << s+1 << " : done\n";
+    output << "s" << s+1 << " : done\n";
 
-    std::cout << "\nQ3) Yes, it is possible to adjust the reward function such that the values V*(s)\n"
+    output << "\nQ3) Yes, it is possible to adjust the reward function such that the values V*(s)\n"
                     "are different while PI* remains unchanged. For this simple case, this is achieved\n"
                     "by ensuring the reward for s2:right (rs2r) and the reward s6:up (rs6u) are set so the\n"
                     "following equation holds: 0.8*(rs2r) < (0.8^3)*(rs6u)\n\n"
@@ -170,16 +173,22 @@ int main(int agrc, char *argv[]){
     rs6u = 79;
     run_vit();
 
-    std::cout << "Setting rs6u to 79 results in policy (starting s1):\n    ";
+    output << "Setting rs6u to 79 results in policy (starting s1):\n    ";
     s = s1;
     while (s != s3){
-        std::cout << "s" << s+1 << " : " << action_name(PI(s)) << " -> ";
+        output << "s" << s+1 << " : " << action_name(PI(s)) << " -> ";
         s = next_state(s, PI(s));
     }
-    std::cout << "s" << s+1 << " : done\n"
+    output << "s" << s+1 << " : done\n"
     "\nThe reward function V* however has changed:\n";
     for(int state = s1; state <= s6; ++state){
-        std::cout << "State " << state+1 << " -> V*(" << state+1 << ") = " << V[state] << std::endl;
+        output << "State " << state+1 << " -> V*(" << state+1 << ") = " << V[state] << std::endl;
     }
+
+    //display the results to terminal
+    std::cout << output.str();
+
+    //write to results file
+    save_results(output);
 
 }
